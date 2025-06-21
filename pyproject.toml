@@ -1,0 +1,23 @@
+[project]
+name = "spotify_smart_playlist_creator"
+version = "0.1.0"
+description = "spotify_smart_playlist_creator using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "crewai[tools]>=0.121.0,<1.0.0"
+]
+
+[project.scripts]
+spotify_smart_playlist_creator = "spotify_smart_playlist_creator.main:run"
+run_crew = "spotify_smart_playlist_creator.main:run"
+train = "spotify_smart_playlist_creator.main:train"
+replay = "spotify_smart_playlist_creator.main:replay"
+test = "spotify_smart_playlist_creator.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"

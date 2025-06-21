@@ -1,0 +1,23 @@
+generate_music_list_task:
+  description: >
+    Interpret the user's prompt describing the type of playlist they want to create.
+    The prompt may include genre, era, occasion, mood, and optionally the desired number of songs or total duration of the playlist (in minutes).
+    Based on this input, generate a list of songs that match the theme and approximate the requested length or song count.
+    User Prompt is: {user_prompt}
+  expected_output: >
+    A list of songs formatted as:
+    - "Song Title" by Artist Name
+
+    The list should include approximately the number of songs or total duration specified by the user.
+    If the user does not specify either, generate a default playlist of 10 songs.
+  agent: music_researcher
+
+fetch_spotify_uris_task:
+  description: >
+    Receive a list of songs with their respective artist names and use the Spotify API to search for each one.
+    Retrieve the Spotify URI for each track, ensuring that the match is as accurate as possible based on title and artist.
+    Handle edge cases where a song may not be found by skipping or logging it for review.
+  expected_output: >
+    A list of Spotify track URIs that match the input song titles and artist names, preserving the same order.
+    If any track is not found, return a clear indication like: "NOT FOUND – 'Song Title' by Artist Name".
+  agent: spotify_uri_fetcher
