@@ -14,10 +14,28 @@ generate_music_list_task:
 
 fetch_spotify_uris_task:
   description: >
-    Receive a list of songs with their respective artist names and use the Spotify API to search for each one.
-    Retrieve the Spotify URI for each track, ensuring that the match is as accurate as possible based on title and artist.
+    Receive a list of songs with their respective artist names and use the Spotify Web API to search for each one.
+    Retrieve the Spotify URL for each track, ensuring the match is as accurate as possible based on title and artist.
+    This task relies on an external Tool that queries the Spotify API directly.
     Handle edge cases where a song may not be found by skipping or logging it for review.
+    Use the Spotify Web API to search for tracks. The token is already available as the `token` input. Do not generate or hardcode it.
   expected_output: >
-    A list of Spotify track URIs that match the input song titles and artist names, preserving the same order.
-    If any track is not found, return a clear indication like: "NOT FOUND – 'Song Title' by Artist Name".
+    Use the Spotify Web API to search for tracks. The token is already available as the `token` input {token}. Do not generate or hardcode it.
+    A single comma-separated string (wuthout spaces) containing only the valid Spotify url (example: uris=spotify:track:4iV5W9uYEdYUVa79Axb7Rh,spotify:track:1301WleyT98MSxVHPZCA6M,spotify:episode:512ojhOuo1ktJprKbVcKyQ).
+    If a track cannot be found, omit it from the output.
   agent: spotify_uri_fetcher
+
+create_and_populate_playlist_task:
+  description: >
+    Using the provided Spotify access token, user ID, list of track URIs, playlist name and description,
+    create a new playlist in the user's Spotify account and add the songs to it.
+    This task uses the Spotify Web API and assumes valid authentication via OAuth.
+    Do not attempt to generate or refresh the token manually.
+    Use the Spotify Web API to search for tracks. The token is already available as the `token` input {token}. Do not generate or hardcode it.
+  expected_output: >
+    A JSON object containing the playlist URL and name. For example:
+    {
+      "playlist_url": "https://open.spotify.com/playlist/7wDH1tHMWUcdq5yMb5vVeK",
+      "name": "Minha Playlist da Crew"
+    }
+  agent: spotify_playlist_creator

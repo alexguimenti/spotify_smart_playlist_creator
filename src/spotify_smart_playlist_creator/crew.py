@@ -2,9 +2,14 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
+from crewai_tools import ScrapeWebsiteTool, SerperDevTool
+from spotify_smart_playlist_creator.tools.custom_tool import SpotifySearchTool, SpotifyAddTracksToPlaylistTool, SpotifyCreatePlaylistTool, SpotifyGetCurrentUserTool
+
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+search_tool = SerperDevTool()
+
 
 @CrewBase
 class SpotifySmartPlaylistCreator():
@@ -24,7 +29,8 @@ class SpotifySmartPlaylistCreator():
         return Agent(
             config=self.agents_config['music_researcher'], # type: ignore[index]
             verbose=True,
-            human_input = True
+            human_input = True,
+            tools=[search_tool]
         )
     
     @agent
@@ -32,7 +38,21 @@ class SpotifySmartPlaylistCreator():
         return Agent(
             config=self.agents_config['spotify_uri_fetcher'], # type: ignore[index]
             verbose=True,
-            human_input = True
+            human_input = True,
+            tools=[SpotifySearchTool()]
+        )
+    
+    @agent
+    def spotify_playlist_creator(self) -> Agent:
+        return Agent(
+            config=self.agents_config['spotify_playlist_creator'], # type: ignore[index]
+            verbose=True,
+            human_input = True,
+            tools=[
+                SpotifyCreatePlaylistTool(),
+                SpotifyAddTracksToPlaylistTool(),
+                SpotifyGetCurrentUserTool()
+                ]
         )
     
     # To learn more about structured task outputs,
@@ -50,6 +70,11 @@ class SpotifySmartPlaylistCreator():
             config=self.tasks_config['fetch_spotify_uris_task'], # type: ignore[index]
         )
     
+    @task
+    def create_and_populate_playlist_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['create_and_populate_playlist_task'], # type: ignore[index]
+        )
 
     @crew
     def crew(self) -> Crew:
