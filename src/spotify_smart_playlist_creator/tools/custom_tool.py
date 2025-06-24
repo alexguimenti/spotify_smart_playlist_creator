@@ -1,11 +1,17 @@
-import requests
-from typing import Type, List
-from pydantic import BaseModel, Field
-from crewai.tools import BaseTool
+"""
+Custom Spotify tools for CrewAI agents
+"""
+
 import os
 import json
 import http.client
+from typing import Type, List
+from pydantic import BaseModel, Field
+from crewai.tools import BaseTool
 
+# -----------------------------------------------------------------------------
+# Spotify Create Playlist Tool
+# -----------------------------------------------------------------------------
 
 class SpotifyCreatePlaylistInput(BaseModel):
     token: str = Field(..., description="Spotify access token of the user")
@@ -14,8 +20,8 @@ class SpotifyCreatePlaylistInput(BaseModel):
     description: str = Field(..., description="Description of the playlist")
     public: bool = Field(False, description="Whether the playlist should be public")
 
-
 class SpotifyCreatePlaylistTool(BaseTool):
+    """Tool to create a new Spotify playlist for a user."""
     name: str = "Spotify Create Playlist Tool"
     description: str = (
         "Creates a new playlist for the given user with a name, description, and visibility."
@@ -28,22 +34,18 @@ class SpotifyCreatePlaylistTool(BaseTool):
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
-
         body = json.dumps({
             "name": name,
             "description": description,
             "public": public
         })
-
         url = f"/v1/users/{user_id}/playlists"
         conn.request("POST", url, body, headers)
         res = conn.getresponse()
         data = res.read()
         response = json.loads(data.decode("utf-8"))
-
         if res.status != 201:
             return f"❌ Failed to create playlist: {response}"
-
         return json.dumps({
             "playlist_id": response.get("id"),
             "playlist_url": response.get("external_urls", {}).get("spotify"),
@@ -51,12 +53,9 @@ class SpotifyCreatePlaylistTool(BaseTool):
             "description": response.get("description")
         }, indent=2)
 
-
-import json
-import http.client
-from typing import Type
-from pydantic import BaseModel, Field
-from crewai.tools import BaseTool
+# -----------------------------------------------------------------------------
+# Spotify Search Tool
+# -----------------------------------------------------------------------------
 
 class SpotifySearchInput(BaseModel):
     token: str = Field(..., description="OAuth access token passed to the task as the 'token' input. Do NOT generate manually.")
@@ -67,6 +66,7 @@ class SpotifySearchInput(BaseModel):
     offset: int = Field(default=0, description="Index of the first result")
 
 class SpotifySearchTool(BaseTool):
+    """Tool to search Spotify's catalog for tracks, artists, albums, etc."""
     name: str = "Spotify Search Tool"
     description: str = (
         "Searches Spotify's catalog using a query string. You can search across tracks, artists, albums, playlists, etc."
@@ -76,48 +76,35 @@ class SpotifySearchTool(BaseTool):
     def _run(self, token: str, query: str, search_type: str, market: str = "US", limit: int = 5, offset: int = 0) -> str:
         query_encoded = query.replace(" ", "%20")
         path = f"/v1/search?q={query_encoded}&type={search_type}&market={market}&limit={limit}&offset={offset}"
-
         curl_cmd = (
             f"curl --request GET \\\n"
             f"  --url 'https://api.spotify.com{path}' \\\n"
             f"  --header 'Authorization: Bearer {token}'"
         )
-        print("\n🐚 Requisição em cURL:")
+        print("\n🐚 cURL request:")
         print(curl_cmd)
-
-        print("\n🎧 [SpotifySearchTool] Rodando com os parâmetros:")
-        print(f"  token: {token}...")  # só os primeiros caracteres, por segurança
+        print("\n🎧 [SpotifySearchTool] Running with parameters:")
+        print(f"  token: {token}...")  # only the first characters, for security
         print(f"  query: {query}")
         print(f"  search_type: {search_type}")
         print(f"  market: {market}")
         print(f"  limit: {limit}")
         print(f"  offset: {offset}")
         conn = http.client.HTTPSConnection("api.spotify.com")
-
-        query_encoded = query.replace(" ", "%20")
-        path = f"/v1/search?q={query_encoded}&type={search_type}&market={market}&limit={limit}&offset={offset}"
-
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-
+        headers = {"Authorization": f"Bearer {token}"}
         conn.request("GET", path, headers=headers)
         res = conn.getresponse()
         data = res.read()
         response = json.loads(data.decode("utf-8"))
         items = response.get("tracks", {}).get("items", [])
-        
         if not items:
             return ""
-
-        # Retorna o URL público do Spotify (não URI do tipo `spotify:track:id`)
+        # Returns the public Spotify URL (not URI like `spotify:track:id`)
         return items[0]["external_urls"]["spotify"]
 
-import json
-import http.client
-from typing import Type, List
-from pydantic import BaseModel, Field
-from crewai.tools import BaseTool
+# -----------------------------------------------------------------------------
+# Spotify Add Tracks To Playlist Tool
+# -----------------------------------------------------------------------------
 
 class SpotifyAddTracksInput(BaseModel):
     token: str = Field(..., description="Spotify OAuth access token of the user")
@@ -126,6 +113,7 @@ class SpotifyAddTracksInput(BaseModel):
     position: int = Field(default=0, description="Position in the playlist where tracks should be inserted (0 = beginning)")
 
 class SpotifyAddTracksToPlaylistTool(BaseTool):
+    """Tool to add tracks to a Spotify playlist."""
     name: str = "Spotify Add Tracks Tool"
     description: str = (
         "Adds a list of Spotify track URIs to a specific playlist, at the specified position (default is beginning)."
@@ -138,34 +126,34 @@ class SpotifyAddTracksToPlaylistTool(BaseTool):
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
-
         payload = json.dumps({
             "uris": uris,
             "position": position
         })
-
         path = f"/v1/playlists/{playlist_id}/tracks"
         conn.request("POST", path, body=payload, headers=headers)
         res = conn.getresponse()
         data = res.read()
-
         try:
             response = json.loads(data.decode("utf-8"))
         except Exception:
             return f"❌ Could not parse Spotify response: {data}"
-
         if res.status != 201:
             return f"❌ Failed to add tracks: {response}"
-
         return json.dumps({
             "snapshot_id": response.get("snapshot_id", "unknown"),
             "status": "Tracks added successfully"
         }, indent=2)
 
+# -----------------------------------------------------------------------------
+# Spotify Get Current User Tool
+# -----------------------------------------------------------------------------
+
 class SpotifyGetCurrentUserInput(BaseModel):
     token: str = Field(..., description="Spotify OAuth access token with 'user-read-private' scope")
 
 class SpotifyGetCurrentUserTool(BaseTool):
+    """Tool to fetch the current authenticated user's Spotify profile."""
     name: str = "Spotify Get Current User Tool"
     description: str = (
         "Fetches the current authenticated user's Spotify profile using the /me endpoint. "
@@ -175,22 +163,16 @@ class SpotifyGetCurrentUserTool(BaseTool):
 
     def _run(self, token: str) -> str:
         conn = http.client.HTTPSConnection("api.spotify.com")
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-
+        headers = {"Authorization": f"Bearer {token}"}
         conn.request("GET", "/v1/me", headers=headers)
         res = conn.getresponse()
         data = res.read()
-
         if res.status != 200:
             return f"❌ Failed to fetch user profile: HTTP {res.status} - {data.decode('utf-8')}"
-
         user_info = json.loads(data.decode("utf-8"))
         result = {
             "id": user_info.get("id"),
             "display_name": user_info.get("display_name"),
             "profile_url": user_info.get("external_urls", {}).get("spotify")
         }
-
         return json.dumps(result, indent=2)
