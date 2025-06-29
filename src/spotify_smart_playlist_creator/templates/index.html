@@ -11,7 +11,7 @@
       text-align: center;
       padding-top: 100px;
     }
-    .button {
+    .button, input[type="submit"] {
       background-color: #1DB954;
       border: none;
       padding: 15px 30px;
@@ -20,15 +20,31 @@
       text-decoration: none;
       border-radius: 30px;
       transition: background-color 0.3s;
+      cursor: pointer;
     }
-    .button:hover {
+    .button:hover, input[type="submit"]:hover {
       background-color: #17a44f;
+    }
+    input[type="text"] {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      width: 400px;
+      margin-bottom: 20px;
+    }
+    form {
+      display: inline-block;
     }
   </style>
 </head>
 <body>
   <h1>Welcome to My Spotify App</h1>
-  <p>Click below to authenticate with your Spotify account</p>
-  <a href="/login" class="button">Login with Spotify</a>
+  <p>Describe the kind of playlist you want:</p>
+  <form method="POST" action="/login">
+    <input type="text" name="user_prompt" placeholder="e.g. 12 chill acoustic songs for a sunset" required>
+    <br>
+    <input type="submit" value="Login with Spotify">
+  </form>
 </body>
 </html>

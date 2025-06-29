@@ -54,9 +54,11 @@ def index():
     """Render the welcome page."""
     return render_template('index.html')
 
-@app.route('/login')
+@app.route('/login', methods=['POST'])
 def login():
-    """Redirect user to Spotify login/authorization."""
+    """Receive user prompt and redirect to Spotify login/authorization."""
+    user_prompt = request.form.get('user_prompt')
+    session['user_prompt'] = user_prompt  # Save it in session for callback
     state = generate_random_string(16)
     session['state'] = state
     scope = 'user-read-private user-read-email playlist-modify-private playlist-modify-public'
@@ -98,8 +100,9 @@ def callback():
     access_token = token_json['access_token']
 
     # Prepare agent inputs
+    user_prompt = session.get('user_prompt', 'Create a chill evening playlist with 12 acoustic and folk songs.')
     inputs = {
-        'user_prompt': 'Create a playlist with 5 punk rock songs from the 90s and 2000s with bands like Blink and Green Day',
+        'user_prompt': user_prompt,
         'access_token': access_token,
         'token': access_token
     }
