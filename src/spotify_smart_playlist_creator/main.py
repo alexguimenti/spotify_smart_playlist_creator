@@ -4,7 +4,7 @@ import warnings
 
 from datetime import datetime
 
-from spotify_smart_playlist_creator.crew import SpotifySmartPlaylistCreator
+from spotify_smart_playlist_creator.spotify_crew import SpotifySmartPlaylistCreator
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 

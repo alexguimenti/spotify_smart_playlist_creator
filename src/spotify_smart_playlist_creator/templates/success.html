@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Playlist Created Successfully!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #1DB954, #191414);
+      color: white;
+      text-align: center;
+      padding-top: 100px;
+    }
+    .success {
+      font-size: 24px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .button {
+      background-color: #1DB954;
+      border: none;
+      padding: 15px 30px;
+      color: white;
+      font-size: 18px;
+      text-decoration: none;
+      border-radius: 30px;
+      transition: background-color 0.3s;
+      cursor: pointer;
+      margin-top: 30px;
+      display: inline-block;
+    }
+    .button:hover {
+      background-color: #17a44f;
+    }
+    .icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .error {
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+  {% if playlist_url and playlist_url != "timeout" %}
+    <span class="icon">🎉</span>
+    <h2 class="success">Your playlist is ready!</h2>
+    <p>Your personalized playlist has been created successfully using artificial intelligence.</p>
+    <p>
+      <a id="playlist-link" class="button" href="{{ playlist_url }}" target="_blank">Open Playlist on Spotify</a>
+    </p>
+  {% elif playlist_url == "timeout" %}
+    <span class="icon">⏰</span>
+    <h2 class="error">Process took too long</h2>
+    <p>The playlist creation process took longer than expected. Please try again.</p>
+  {% else %}
+    <span class="icon">❌</span>
+    <h2 class="error">Something went wrong</h2>
+    <p>There was an error creating your playlist. Please try again.</p>
+  {% endif %}
+  <p>
+    <a class="button" href="/">Create another playlist</a>
+  </p>
+</body>
+</html> 
